@@ -36,10 +36,17 @@ func getList() map[string][]string {
 func main() {
 	osArch := getList()
 	
+	for k := range osArch {
+		dir := filepath.Join("builds", k) // "builds/linux", "builds/windows", etc.
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Printf("Erreur création dossier %s : %v", dir, err)
+		}
+	}
+
 	jobs := make(chan Job)
 	var wg sync.WaitGroup
 
-	numWorkers := 1 // Trois workers fixes
+	numWorkers := 10 // Trois workers fixes
 
 	// Lancement des workers
 	for i := 0; i < numWorkers; i++ {
@@ -65,7 +72,8 @@ func main() {
 }
 
 func buildFor(goos, goarch string) {
-	output := fmt.Sprintf("builds/app-%s-%s", goos, goarch)
+	output := fmt.Sprintf("builds/%s/%s", goos, goarch)
+	fmt.Println(output)
 	if goos == "windows" {
 		output += ".exe"
 	}
